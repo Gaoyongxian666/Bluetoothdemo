@@ -42,7 +42,6 @@ public class BluetoothSocketReceiveThread extends Thread {
             if (inputStream != null) {
                 try {
                     bytes = inputStream.read(buffer);
-                    Log.e("dd","00000000000000");
 
                 } catch (IOException e) {
                     Log.e(TAG,"inputStream读取失败");

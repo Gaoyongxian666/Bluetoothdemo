@@ -35,6 +35,10 @@ class BluetoothServerThread extends Thread {
     private ArrayList<String> mac_list=new ArrayList<String>();
     private BluetoothSocketReceiveThread bluetoothSocketReceiveThread;
     private BluetoothSocket lastsocket;
+    private ConnectedThread connectedThread;
+    private ConnectedThread connectedThread1;
+    private ConnectedThread connectedThread2;
+
 
 
 
@@ -77,22 +81,22 @@ class BluetoothServerThread extends Thread {
                 // 操作成功后，accept() 将会返回已连接的 BluetoothSocket。
                 Log.e("dd", " mmServerSocket.accept()");
                 socket = mmServerSocket.accept();
-                try {
-                    stopThread();
-                    Log.e("dd", " bluetoothSocketReceiveThread");
-                    String address = socket.getRemoteDevice().getAddress();
+                connectedThread=new ConnectedThread(socket);
+                connectedThread.start();
+                Log.e("dd","第1个连接占用");
 
-                    // 接收到一个新连接之后都会再次新开两个线程 接收和发送线程
-                    bluetoothSocketReceiveThread = new BluetoothSocketReceiveThread("Receive"+address + "BTReceiveThread",
-                             socket.getInputStream());
-                    bluetoothSocketSendThread = new BluetoothSocketSendThread("Send"+address + "BTSendThread", socket.getOutputStream());
+                socket = mmServerSocket.accept();
+                connectedThread1=new ConnectedThread(socket);
+                connectedThread1.start();
+                Log.e("dd","第2个连接占用");
 
-                } catch (IOException e) {
-                        e.printStackTrace();
 
-                }
-                bluetoothSocketReceiveThread.start();
-                bluetoothSocketSendThread.start();
+                socket = mmServerSocket.accept();
+                connectedThread2=new ConnectedThread(socket);
+                connectedThread2.start();
+                Log.e("dd","第3个连接占用");
+
+//
 
                 // 在完成传入连接的侦听后，通常应立即关闭您的 BluetoothServerSocket。
                 // 在此示例中，获取 BluetoothSocket 后立即调用 close()。 您也可能希望在您的线程中提供一个公共方法，
@@ -117,10 +121,23 @@ class BluetoothServerThread extends Thread {
         }
     }
 
-    public void sendMsg(String data) {
-        if (bluetoothSocketSendThread != null) {
-            bluetoothSocketSendThread.sendMsg(data);
+    public void sendMsg(String mac,String data) {
+        if (connectedThread != null){
+            if (mac.equals(connectedThread.getmac())) {
+                connectedThread.write(data);
+            }
         }
+        if (connectedThread1 != null){
+            if (mac.equals(connectedThread1.getmac())) {
+                connectedThread1.write(data);
+            }
+        }
+        if (connectedThread2 != null){
+            if (mac.equals(connectedThread2.getmac())) {
+                connectedThread2.write(data);
+            }
+        }
+
     }
 
 

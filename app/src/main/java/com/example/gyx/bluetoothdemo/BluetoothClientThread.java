@@ -29,6 +29,7 @@ public class BluetoothClientThread extends Thread{
     private BluetoothSocketReceiveThread bluetoothSocketReceiveThread;
     private BluetoothSocketHeartBeatThread bluetoothSocketHeartBeatThread;
     private BluetoothSocket bluetoothSocket;
+    private ConnectedThread connectedThread;
 
     private BluetoothDevice device;
 
@@ -67,15 +68,10 @@ public class BluetoothClientThread extends Thread{
         bluetoothSocket.connect();
         Log.e("dd", "与目标端连接成功");
 
-        bluetoothSocketReceiveThread = new BluetoothSocketReceiveThread("BluetoothSocketReceiveThread",
-                bluetoothSocket.getInputStream());
-        bluetoothSocketReceiveThread.start();
-
+        connectedThread=new ConnectedThread(bluetoothSocket);
+        connectedThread.start();
 
         OutputStream outputStream = bluetoothSocket.getOutputStream();
-        bluetoothSocketSendThread = new BluetoothSocketSendThread("BluetoothSocketSendThread", outputStream);
-        bluetoothSocketSendThread.start();
-
 
         if (isLongConnection) {
             bluetoothSocketHeartBeatThread = new BluetoothSocketHeartBeatThread("BluetoothSocketHeartBeatThread",
@@ -94,24 +90,16 @@ public class BluetoothClientThread extends Thread{
 
 
     public void sendMsg(String data) {
-        if (bluetoothSocketSendThread != null) {
-            bluetoothSocketSendThread.sendMsg(data);
+        if (connectedThread != null) {
+            connectedThread.write(data);
         }
     }
 
 
     public synchronized void stopThread() throws IOException {
-        Log.e(TAG,"开始关闭三个tcp处理线程");
-        //关闭接收线程
-        closeReceiveTask();
-        //唤醒发送线程并关闭
-        wakeSendTask();
-        //关闭心跳线程
+        connectedThread.cancel();
         closeHeartBeatTask();
-        //关闭socket
-        closeSocket();
-        //清除数据
-        clearData();
+
 
         if (isReConnect) {
             isReConnect=false;
@@ -127,44 +115,11 @@ public class BluetoothClientThread extends Thread{
         }
     }
 
-
-    private void wakeSendTask() {
-        if (bluetoothSocketSendThread != null) {
-            bluetoothSocketSendThread.wakeSendTask();
-        }
-    }
-
-
-    private void closeReceiveTask() {
-        if (bluetoothSocketReceiveThread != null) {
-            bluetoothSocketReceiveThread.close();
-            bluetoothSocketReceiveThread = null;
-        }
-    }
-
-
     private void closeHeartBeatTask() throws IOException {
         if (bluetoothSocketHeartBeatThread != null) {
             bluetoothSocketHeartBeatThread.close();
         }
     }
-
-
-    private void closeSocket() throws IOException {
-        if (bluetoothSocket != null) {
-            bluetoothSocket.close();
-            bluetoothSocket = null;
-        }
-    }
-
-
-    private void clearData() {
-        if (bluetoothSocketSendThread != null) {
-            bluetoothSocketSendThread.clearData();
-        }
-    }
-
-
 
     public void setReConnect(boolean reConnect) {
         isReConnect = reConnect;

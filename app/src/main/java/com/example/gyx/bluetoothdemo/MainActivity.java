@@ -91,13 +91,14 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 4:
                     receiverData=msg.getData().getString("receiverData");
+                    String mac=msg.getData().getString("mac");
                     if (receiverData==null){
                         Toast.makeText(MyApplication.getContext(), "接收数据为空", Toast.LENGTH_SHORT).show();
                     }else {
                         Log.e("receiver_MAIN", receiverData);
                         if (receiverData.equals("55AAAA55")) {
-                            bluetoothServer.sendData("55BBBB55");
-                            Log.e("bluetoothServer", "心跳包回应完成");
+                            bluetoothServer.sendData(mac,"55BBBB55");
+                            Log.e("bluetoothServer", mac+"心跳包回应完成");
                         } else {
                             // 静态方法获取context
                             Toast.makeText(MyApplication.getContext(), "接收数据为："+receiverData, Toast.LENGTH_SHORT).show();
@@ -250,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this,"你还没有一个客户端连接你",Toast.LENGTH_SHORT).show();
                 }else {
                     String b = "55 BB 66 BB 77 BB";
-                    bluetoothServer.sendData(b);
+                    bluetoothServer.sendData("",b);
                 }
             }
         });

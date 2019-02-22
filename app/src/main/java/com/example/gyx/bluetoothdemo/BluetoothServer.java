@@ -20,14 +20,14 @@ public class BluetoothServer {
         bluetoothServerThread.start();
     }
 
-    public <T> void sendData(T data) {
+    public <T> void sendData(String mac,T data) {
         String s = (String) data;
         if (TextUtils.isEmpty(s)) {
             Log.e(TAG, "sendData: 消息不能为空");
             return;
         }
         if (bluetoothServerThread != null) {
-            bluetoothServerThread.sendMsg(s);
+            bluetoothServerThread.sendMsg(mac,s);
         }else {
             Log.i(TAG, "发送消息失败，socketServerThread为空");
         }
